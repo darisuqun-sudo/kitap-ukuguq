@@ -7,12 +7,15 @@ if (typeof window !== 'undefined') {
 }
 
 export async function loadPdfDocument(data: ArrayBuffer | Uint8Array): Promise<pdfjsLib.PDFDocumentProxy> {
+  // Clone data to avoid detaching the caller's ArrayBuffer when transferred to worker
+  const bytes = data instanceof Uint8Array ? data.slice() : new Uint8Array(data.slice(0));
+
   const loadingTask = pdfjsLib.getDocument({
-    data: data instanceof Uint8Array ? data : new Uint8Array(data),
-    cMapUrl: './cmaps/',
+    data: bytes,
+    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@legacy/cmaps/',
     cMapPacked: true,
-    standardFontDataUrl: './standard_fonts/',
   });
+
   return await loadingTask.promise;
 }
 
@@ -27,11 +30,11 @@ export async function generateCoverThumbnail(pdfDoc: pdfjsLib.PDFDocumentProxy):
     const scaledViewport = page.getViewport({ scale });
 
     const canvas = document.createElement('canvas');
-    canvas.width = scaledViewport.width;
-    canvas.height = scaledViewport.height;
+    canvas.width = Math.floor(scaledViewport.width);
+    canvas.height = Math.floor(scaledViewport.height);
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas 2D context not available');
+    if (!ctx) return createPlaceholderCover();
 
     await page.render({
       canvasContext: ctx,

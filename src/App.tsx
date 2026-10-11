@@ -219,7 +219,10 @@ export const App: React.FC = () => {
 
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const doc = await loadPdfDocument(arrayBuffer);
+        const bufferForDb = arrayBuffer.slice(0);
+        const bufferForPdf = arrayBuffer.slice(0);
+
+        const doc = await loadPdfDocument(bufferForPdf);
         const coverThumbnail = await generateCoverThumbnail(doc);
 
         const newBook: Book = {
@@ -235,7 +238,7 @@ export const App: React.FC = () => {
           bookmarks: [],
         };
 
-        await saveBook(newBook, arrayBuffer);
+        await saveBook(newBook, bufferForDb);
         syncBookToSupabase({
           id: newBook.id,
           title: newBook.title,
@@ -251,9 +254,10 @@ export const App: React.FC = () => {
 
         // Open newly added book
         handleSelectBook(newBook);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to import PDF file:', file.name, err);
-        alert(`«${file.name}» نى يۈكلەشتە خاتالىق كۆرۈلدى`);
+        const errMsg = err?.message || String(err);
+        alert(`«${file.name}» نى يۈكلەشتە خاتالىق كۆرۈلدى:\n${errMsg}`);
       }
     }
   };
@@ -271,7 +275,10 @@ export const App: React.FC = () => {
               bytes[i] = binary.charCodeAt(i);
             }
             const arrayBuffer = bytes.buffer;
-            const doc = await loadPdfDocument(arrayBuffer);
+            const bufferForDb = arrayBuffer.slice(0);
+            const bufferForPdf = arrayBuffer.slice(0);
+
+            const doc = await loadPdfDocument(bufferForPdf);
             const coverThumbnail = await generateCoverThumbnail(doc);
 
             const newBook: Book = {
@@ -288,7 +295,7 @@ export const App: React.FC = () => {
               bookmarks: [],
             };
 
-            await saveBook(newBook, arrayBuffer);
+            await saveBook(newBook, bufferForDb);
             const all = await getAllBooks();
             setBooks(all);
             handleSelectBook(newBook);
