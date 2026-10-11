@@ -1,20 +1,17 @@
 import * as pdfjsLib from 'pdfjs-dist';
+// Import the PDF.js worker as a direct bundled asset URL via Vite
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Configure PDF.js worker
 if (typeof window !== 'undefined') {
-  try {
-    // Try to use bundled worker or standard cdnjs worker matching version
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-  } catch (e) {
-    console.warn('PDF worker configuration fallback:', e);
-  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 }
 
 export async function loadPdfDocument(data: ArrayBuffer | Uint8Array): Promise<pdfjsLib.PDFDocumentProxy> {
   const loadingTask = pdfjsLib.getDocument({
     data: data instanceof Uint8Array ? data : new Uint8Array(data),
-    cMapUrl: 'https://unpkg.com/pdfjs-dist@legacy/cmaps/',
+    cMapUrl: './cmaps/',
     cMapPacked: true,
+    standardFontDataUrl: './standard_fonts/',
   });
   return await loadingTask.promise;
 }
@@ -43,35 +40,38 @@ export async function generateCoverThumbnail(pdfDoc: pdfjsLib.PDFDocumentProxy):
 
     return canvas.toDataURL('image/jpeg', 0.85);
   } catch (error) {
-    console.error('Failed to generate cover thumbnail:', error);
-    // Return a default SVG placeholder
+    console.warn('Failed to generate cover thumbnail, using placeholder:', error);
     return createPlaceholderCover();
   }
 }
 
 export function createPlaceholderCover(title: string = 'PDF'): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = 180;
-  canvas.height = 250;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return '';
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 180;
+    canvas.height = 250;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
 
-  // Background gradient
-  const grad = ctx.createLinearGradient(0, 0, 180, 250);
-  grad.addColorStop(0, '#3b82f6');
-  grad.addColorStop(1, '#1d4ed8');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 180, 250);
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, 180, 250);
+    grad.addColorStop(0, '#2563eb');
+    grad.addColorStop(1, '#1e40af');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 180, 250);
 
-  // Book spine accent
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-  ctx.fillRect(0, 0, 15, 250);
+    // Book spine accent
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillRect(0, 0, 15, 250);
 
-  // Text
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 16px "Noto Sans Arabic", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('📖 كىتاب', 95, 120);
+    // Text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px "Noto Sans Arabic", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📖 كىتاب', 95, 120);
 
-  return canvas.toDataURL('image/png');
+    return canvas.toDataURL('image/png');
+  } catch {
+    return '';
+  }
 }
