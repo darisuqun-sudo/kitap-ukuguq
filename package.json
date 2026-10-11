@@ -1,0 +1,39 @@
+{
+  "name": "kitap",
+  "version": "1.0.0",
+  "description": "ئۇيغۇرچە ئەقلىي ئىقتىدارلىق PDF كىتاب ئوقۇغۇچ",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev:vite": "vite",
+    "build": "vite build",
+    "start": "node server.js",
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER=true electron .\"",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "uyghur",
+    "pdf",
+    "reader",
+    "desktop",
+    "rtl"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
+    "lucide-react": "^1.55.0",
+    "pdfjs-dist": "^6.4.299",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
+    "electron": "^44.7.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.4",
+    "wait-on": "^9.5.1"
+  }
+}
