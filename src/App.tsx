@@ -21,6 +21,7 @@ import { BookSidebar } from './components/BookSidebar';
 import { PdfViewer } from './components/PdfViewer';
 import { ScreenshotModal } from './components/ScreenshotModal';
 import { SearchModal } from './components/SearchModal';
+import { syncBookToSupabase, syncReadingProgressToSupabase } from './services/supabase';
 
 export const App: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -163,6 +164,7 @@ export const App: React.FC = () => {
 
     // Save reading progress to database
     await updateBookProgress(currentBook.id, validPage, 0, zoom);
+    syncReadingProgressToSupabase(currentBook.id, validPage, zoom).catch(() => {});
 
     // Update in-memory state
     setBooks((prev) =>
@@ -180,6 +182,7 @@ export const App: React.FC = () => {
     setZoom(newZoom);
     if (currentBook) {
       await updateBookProgress(currentBook.id, currentPage, 0, newZoom);
+      syncReadingProgressToSupabase(currentBook.id, currentPage, newZoom).catch(() => {});
     }
   };
 
@@ -233,6 +236,16 @@ export const App: React.FC = () => {
         };
 
         await saveBook(newBook, arrayBuffer);
+        syncBookToSupabase({
+          id: newBook.id,
+          title: newBook.title,
+          cover_url: newBook.coverThumbnail,
+          file_size: newBook.fileSize,
+          total_pages: newBook.totalPages,
+          last_read_page: newBook.lastReadPage,
+          zoom_level: newBook.zoomLevel,
+        }).catch(() => {});
+
         const all = await getAllBooks();
         setBooks(all);
 
